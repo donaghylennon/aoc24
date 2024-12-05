@@ -35,7 +35,7 @@ char *read_input(const char *filename);
 AOC_StringView aoc_read_file(const char *filename);
 AOC_StringView aoc_str(const char *cstring);
 void sort(int *arr, int count);
-#define AOC_IMPLEMENTATION
+
 #ifdef AOC_IMPLEMENTATION
 
 AOC_StringView aoc_str(const char *cstring) {
