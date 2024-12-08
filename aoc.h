@@ -45,6 +45,7 @@ AOC_StringView aoc_sv(const char *cstring);
 void sort(int *arr, int count);
 AOC_StringView aoc_sv_substring(AOC_StringView sv, int start, int end);
 int aoc_sv_find(AOC_StringView sv, const char c);
+int aoc_sv_find_starting_at(AOC_StringView sv, const char c, int start_pos);
 AOC_StringViewDA aoc_sv_split(AOC_StringView sv, const char delim);
 void aoc_sv_print(AOC_StringView sv);
 
@@ -86,26 +87,31 @@ int aoc_sv_find(AOC_StringView sv, const char c) {
     return -1;
 }
 
+int aoc_sv_find_starting_at(AOC_StringView sv, const char c, int start_pos) {
+    for (int i = start_pos; i < sv.length; i++) {
+        if (sv.data[i] == c)
+            return i;
+    }
+    return -1;
+}
+
 AOC_StringViewDA aoc_sv_split(AOC_StringView sv, const char delim) {
     AOC_StringViewDA results = {0};
-    int substring_start = 0;
-    int count = 0;
     AOC_StringView remaining = sv;
-    while (substring_start < sv.length) {
-        int j = aoc_sv_find(remaining, delim);
-        if (j < 0) {
+    int delim_pos = 0;
+    while (remaining.length > 0) {
+        delim_pos = aoc_sv_find(remaining, delim);
+        if (delim_pos < 0) {
             break;
         }
-        if (j == substring_start) {
-            substring_start++;
-            continue;
+        if (delim_pos > 0) {
+            AOC_StringView substring = aoc_sv_substring(remaining, 0, delim_pos);
+            AOC_DA_APPEND(results, substring);
         }
-        AOC_StringView substring = aoc_sv_substring(remaining, substring_start, j);
-        AOC_DA_APPEND(results, substring);
-        substring_start = j+1;
-        remaining = aoc_sv_substring(remaining, substring_start, remaining.length);
+        if (delim_pos < remaining.length)
+            remaining = aoc_sv_substring(remaining, delim_pos+1, remaining.length);
     }
-    if (substring_start < sv.length) {
+    if (remaining.length > 0) {
         AOC_DA_APPEND(results, remaining);
     }
     return results;
