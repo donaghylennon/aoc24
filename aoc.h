@@ -39,6 +39,43 @@ typedef struct {
 
 typedef AOC_DA(AOC_StringView) AOC_StringViewDA;
 
+typedef struct {
+
+} HT_Bucket;
+
+#define AOC_HT_BUCKET(T) \
+    struct T##_Bucket { \
+        T item; \
+        T##_Bucket *prev; \
+        T##_Bucket *next; \
+    }
+
+#define AOC_HM_ENTRY(K, V) \
+    struct K##_##V##_Entry { \
+        K key; \
+        V value; \
+    }
+
+#define AOC_HASHTABLE(T) \
+    struct { \
+        T **buckets; \
+        size_t size; \
+        size_t capacity; \
+    }
+
+typedef struct int_bucket {
+    int item;
+    struct int_bucket *prev;
+    struct int_bucket *next;
+} IntBucket;
+
+#define AOC_HASHTABLE_INITIAL_SIZE 64
+typedef struct {
+    IntBucket **buckets;
+    size_t size;
+    size_t capacity;
+} IntHashSet;
+
 char *read_input(const char *filename);
 AOC_StringView aoc_read_file(const char *filename);
 AOC_StringView aoc_sv(const char *cstring);
@@ -104,10 +141,8 @@ AOC_StringViewDA aoc_sv_split(AOC_StringView sv, const char delim) {
         if (delim_pos < 0) {
             break;
         }
-        if (delim_pos > 0) {
-            AOC_StringView substring = aoc_sv_substring(remaining, 0, delim_pos);
-            AOC_DA_APPEND(results, substring);
-        }
+        AOC_StringView substring = aoc_sv_substring(remaining, 0, delim_pos);
+        AOC_DA_APPEND(results, substring);
         if (delim_pos < remaining.length)
             remaining = aoc_sv_substring(remaining, delim_pos+1, remaining.length);
     }
@@ -126,6 +161,8 @@ void aoc_sv_print(AOC_StringView sv) {
 
 char *read_input(const char *filename) {
     FILE *file = fopen(filename, "rb");
+    if (!file)
+        return NULL;
     fseek(file, 0, SEEK_END);
     long bytes = ftell(file);
     rewind(file);
@@ -150,6 +187,18 @@ void sort(int *arr, int count) {
         }
     }
 }
+
+/*** Hash Table ***/
+
+IntHashSet create_int_hashset() {
+    IntHashSet h;
+    h.buckets = malloc(AOC_HASHTABLE_INITIAL_SIZE * sizeof(struct int_bucket));
+    memset(h.buckets, 0, AOC_HASHTABLE_INITIAL_SIZE * sizeof(struct int_bucket *));
+    h.capacity = AOC_HASHTABLE_INITIAL_SIZE;
+    h.size = 0;
+}
+
+/******************/
 #endif
 
 #endif
