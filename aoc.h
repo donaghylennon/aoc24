@@ -22,59 +22,23 @@
     } while (0)
 #define AOC_DA_FREE(arr) free((arr).data)
 
-typedef struct {
-    size_t length;
-    const char *data;
-} AOC_String;
+#define AOC_DA_CONTAINS(arr, item, result) \
+    result = 0; \
+    for (int i = 0; i < (arr).length; i++) { \
+        if (item == (arr).data[i]) { \
+            result = 1; \
+            break; \
+        } \
+    }
+
 
 typedef struct {
     size_t length;
     const char *data;
 } AOC_StringView;
 
-typedef struct {
-    size_t length;
-    const char *data;
-} AOC_Array;
-
 typedef AOC_DA(AOC_StringView) AOC_StringViewDA;
 
-typedef struct {
-
-} HT_Bucket;
-
-#define AOC_HT_BUCKET(T) \
-    struct T##_Bucket { \
-        T item; \
-        T##_Bucket *prev; \
-        T##_Bucket *next; \
-    }
-
-#define AOC_HM_ENTRY(K, V) \
-    struct K##_##V##_Entry { \
-        K key; \
-        V value; \
-    }
-
-#define AOC_HASHTABLE(T) \
-    struct { \
-        T **buckets; \
-        size_t size; \
-        size_t capacity; \
-    }
-
-typedef struct int_bucket {
-    int item;
-    struct int_bucket *prev;
-    struct int_bucket *next;
-} IntBucket;
-
-#define AOC_HASHTABLE_INITIAL_SIZE 64
-typedef struct {
-    IntBucket **buckets;
-    size_t size;
-    size_t capacity;
-} IntHashSet;
 
 char *read_input(const char *filename);
 AOC_StringView aoc_read_file(const char *filename);
@@ -188,17 +152,6 @@ void sort(int *arr, int count) {
     }
 }
 
-/*** Hash Table ***/
-
-IntHashSet create_int_hashset() {
-    IntHashSet h;
-    h.buckets = malloc(AOC_HASHTABLE_INITIAL_SIZE * sizeof(struct int_bucket));
-    memset(h.buckets, 0, AOC_HASHTABLE_INITIAL_SIZE * sizeof(struct int_bucket *));
-    h.capacity = AOC_HASHTABLE_INITIAL_SIZE;
-    h.size = 0;
-}
-
-/******************/
 #endif
 
 #endif
