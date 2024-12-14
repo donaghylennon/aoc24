@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
+#include <stdbool.h>
 
 #define AOC_DA(T) \
     struct { \
@@ -39,6 +41,12 @@ typedef struct {
 
 typedef AOC_DA(AOC_StringView) AOC_StringViewDA;
 
+typedef struct {
+    size_t size;
+    size_t capacity;
+    void *buckets;
+} AOC_HashTable;
+
 
 char *read_input(const char *filename);
 AOC_StringView aoc_read_file(const char *filename);
@@ -49,6 +57,11 @@ int aoc_sv_find(AOC_StringView sv, const char c);
 int aoc_sv_find_starting_at(AOC_StringView sv, const char c, int start_pos);
 AOC_StringViewDA aoc_sv_split(AOC_StringView sv, const char delim);
 void aoc_sv_print(AOC_StringView sv);
+
+void hashtable_init(AOC_HashTable *h);
+void hashtable_destroy(AOC_HashTable *h);
+int hashtable_contains(AOC_HashTable *h, void *item);
+int hashtable_add(AOC_HashTable *h, void *item, uint64_t (*hash_function)(void *));
 
 #ifdef AOC_IMPLEMENTATION
 
