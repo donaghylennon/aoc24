@@ -41,10 +41,13 @@ typedef struct {
 
 typedef AOC_DA(AOC_StringView) AOC_StringViewDA;
 
+#define HASHTABLE_INITIAL_CAP 64
 typedef struct {
     size_t size;
     size_t capacity;
-    void *buckets;
+    void **buckets;
+    uint64_t (*hash)(void *);
+    int (*is_equal)(void *, void *);
 } AOC_HashTable;
 
 
@@ -58,11 +61,13 @@ int aoc_sv_find_starting_at(AOC_StringView sv, const char c, int start_pos);
 AOC_StringViewDA aoc_sv_split(AOC_StringView sv, const char delim);
 void aoc_sv_print(AOC_StringView sv);
 
-void hashtable_init(AOC_HashTable *h);
+void hashtable_init(AOC_HashTable *h, uint64_t (*hash_function)(void *), int (*equals_function)(void *, void *));
 void hashtable_destroy(AOC_HashTable *h);
 int hashtable_contains(AOC_HashTable *h, void *item);
-int hashtable_add(AOC_HashTable *h, void *item, uint64_t (*hash_function)(void *));
+int hashtable_add(AOC_HashTable *h, void *item);
+void hashtable_resize(AOC_HashTable *h, size_t new_capacity);
 
+#define AOC_IMPLEMENTATION
 #ifdef AOC_IMPLEMENTATION
 
 AOC_StringView aoc_sv(const char *cstring) {
@@ -162,6 +167,72 @@ void sort(int *arr, int count) {
                 arr[j] = temp;
             }
         }
+    }
+}
+
+void hashtable_init(AOC_HashTable *h, uint64_t (*hash_function)(void *), int (*equals_function)(void *, void *)) {
+    h->capacity = HASHTABLE_INITIAL_CAP;
+    h->size = 0;
+    h->hash = hash_function;
+    h->is_equal = equals_function;
+    h->buckets = malloc(HASHTABLE_INITIAL_CAP * sizeof(void *));
+}
+
+void hashtable_destroy(AOC_HashTable *h) {
+    h->capacity = 0;
+    h->size = 0;
+    if (h->buckets)
+        free(h->buckets);
+    h->buckets = NULL;
+    h->hash = NULL;
+}
+
+int hashtable_contains(AOC_HashTable *h, void *item) {
+    uint64_t hash = h->hash(item);
+    size_t index = hash%h->capacity;
+    while (h->buckets[index]) {
+        if (h->is_equal(h->buckets[index], item)) {
+            return 1;
+        }
+        index = (index + 1) % h->capacity;
+    }
+    return 0;
+}
+
+int hashtable_add(AOC_HashTable *h, void *item) {
+    if (h->size >= h->capacity - 1) {
+        hashtable_resize(h, h->capacity*2);
+    }
+    uint64_t hash = h->hash(item);
+    size_t index = hash%h->capacity;
+    while (h->buckets[index]) {
+        if (h->is_equal(h->buckets[index], item)) {
+            return 1;
+        }
+        index = (index + 1) % h->capacity;
+    }
+    h->buckets[index] = item;
+    h->size++;
+    return 0;
+}
+
+void hashtable_resize(AOC_HashTable *h, size_t new_capacity) {
+    if (h->capacity < new_capacity) {
+        size_t old_capacity = h->capacity;
+        void **new_buckets = malloc(new_capacity * sizeof(void *));
+        for (size_t i = 0; i < old_capacity; i++) {
+            if (h->buckets[i]) {
+                uint64_t hash = h->hash(h->buckets[i]);
+                size_t index = hash % new_capacity;
+                while (new_buckets[index]) {
+                    index = (index + 1) % new_capacity;
+                }
+                new_buckets[index] = h->buckets[i];
+            }
+        }
+        h->capacity = new_capacity;
+        free(h->buckets);
+        h->buckets = new_buckets;
     }
 }
 
